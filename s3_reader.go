@@ -2,6 +2,7 @@ package goreplay
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -34,6 +35,14 @@ func awsConfig() *aws.Config {
 
 	config := &aws.Config{Region: aws.String(region)}
 
+	if os.Getenv("AWS_FORCE_PATH_STYLE") != "" {
+		config.S3ForcePathStyle = aws.Bool(true)
+	}
+
+	if os.Getenv("AWS_DISABLE_SSL") != "" {
+		config.DisableSSL = aws.Bool(true)
+	}
+
 	if endpoint := os.Getenv("AWS_ENDPOINT_URL"); endpoint != "" {
 		config.Endpoint = aws.String(endpoint)
 		log.Println("Custom endpoint:", endpoint)
@@ -58,6 +67,8 @@ func NewS3ReadCloser(path string) *S3ReadCloser {
 	}
 
 	bucket, key := parseS3Url(path)
+
+	fmt.Println("Bucket:", bucket)
 	sess := session.Must(session.NewSession(awsConfig()))
 
 	log.Println("[S3 Input] S3 connection successfully initialized", path)
